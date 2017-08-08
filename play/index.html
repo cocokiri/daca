@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Experiments</title>
+    <link rel="stylesheet" href="./dacapoStyle.css">
+    <link rel="stylesheet" href="../global/globalStyle.css">
+
+</head>
+
+<body>
+
+
+<section class="g-menu">
+
+    <a  class="g-button" href=" /about" >ABOUT</a>
+    <a  class="g-button" href=" /play" >PLAY</a>
+
+    <a  class="g-button" href=" /">HOME</a>
+
+
+</section>
+<p class="standout">
+    Games that require a Microphone, will NOT work on Safari and IE (don't use them in general).
+    Double-check your browser's microphone access to unblock this site (Settings > Content > Microphone).
+</p>
+<section>
+    <h1><span>Polyphonic Pitch Detector</span></h1>
+    <div style="color: black;">
+        <em> Can detect notes and chords(!)</em>
+    </div>
+    <img id="img1" src="./play_images/polyphonic.png" alt="polyphonic pitch detector" />
+    <a href=" ../polyphonic-pitch-detector" target="
+        _blank" class="button">P l a y</a>
+    <p><b>JS</b> <br /> <br />
+        See your music live <br />
+        Develop insane intuition <br />
+        An interactive spectrogram that can instantly detect the note and chord(!) you are playing
+        <br />
+        <br />
+        <em>Polyphonic chord detection FTW</em>
+    </p>
+</section>
+<section>
+    <h1><span>Piano FunFun</span></h1>
+    <div style="color: black;">
+        <em> You need a Keyboard. I'll do more for phones eventually</em>
+    </div>
+    <img id="img1" src="./play_images/piano.png" alt="This is me" />
+    <a href=" ../web-piano" target="
+        _blank" class="button">P l a y</a>
+    <p><b>JS</b> <br /> <br />
+        Play the Piano on your Keyboard. You can: <br /> <br />
+        + shift sound slowly or with Octave jumps <br />
+        + see the chords you're playing <br />
+        + face the music <br /> <br />
+
+        NEW:  >>> Practice with <a href=" ../chord-workout" target="blank"><b> Piano + ChordWorkout</b></a>
+        <br /> <br />
+        <em>Sounds are triangle oscillators made through the Web Audio API. It's still experimental, not standard webtech... sounds good on Chrome,
+            sounds bit weirder on Safari. Cute faces don't show well in Firefox...</em>
+    </p>
+</section>
+
+        <section>
+            <h1><span>RealTime Pitch Detection and Visualization</span></h1>
+            <img id="img1" src="./play_images/PitchVis.png" alt="This is me" />
+            <a href=" ../visual-pitch" target="
+            _blank" class="button">P l a y</a>
+            <p><b>JS</b> <br /> <br />
+                I made this intuitive, realtime spectrogram because all other pitch detection and spectrogram
+                products on web/mobile were horrible. <br /><br /> E.g. bad mappings (<em>hello audacity</em>), dumb Signal Processing code (<em>why dafuq would I need autocorrelation for monophonics, Boris Smus?</em>)
+                and cluttered, shit code from academics (<em>'popular' YIN algorithm -- 1200ms delay @ 70% accuracy. 1000 lines of C# for jack shit. No thanks</em>).
+                <br /><br />
+                You know it's bad when you see hardcoded frequency to note mappings instead of transform functions (just logarithms, bro).<br /><br />
+                The core pitch detection algorithm is extremely accurate for single harmonic sounds and has no delay (~ 1 Frame == 20ms).
+                     <br /> <br />
+                + Shows pitch and timbre exactly where it occurs in the spectrogram <br />
+                + Gives you a strong sense of intervals, fluctations and musical relationships <br />
+                + Even if tonedeaf, you see what's up and train your voice and ear. <br /> <br />
+
+                <em>It will ask you for microphone access. Might not work on all browsers.</em>
+            </p>
+        </section>
+
+<section>
+    <h1><span>MouseMusic</span></h1>
+    <img id="img1" src="./play_images/MouseMusic.png"/>
+    <a href=" ../mouse-oscillator" target="
+            _blank" class="button">P l a y</a>
+    <p><b>JS</b> </b> <br /> <br />
+        Use your mouse to play with oscillator sounds. Other than most music web/mobile XPs I'm
+        stricter with the mapping. This has the side-effect of actually learning something.
+        <br /><br />
+        + Get a feeling for intervals and pitch<br />
+        + See the melody of the last few seconds<br />
+        <br />
+
+        <em>Might not work on all browsers.
+        </em>
+    </p>
+</section>
+
+        <section>
+            <h1><span>Litte Prince Reloaded</span></h1>
+            <img id="img1" src="./play_images/Polygon800.png" alt="This is me" />
+            <a href=" ../little-prince" target="
+            _blank" class="button">P l a y</a>
+            <p><b>THREE.JS</b> </b> <br /> <br />
+                Help Explorer Saint Exupery through the Rainbow Desert<br />
+                Covers a mysterious voicerange - forgot what it was. Good luck<br />
+                + Control plane height with pitch (voice/instrument) <br /><br />
+                <em>
+                    Abandoned -- Decided against using three.js for now. Polygon config for plane was borrowed. Will ask for microphone access.
+                </em>
+            </p>
+        </section>
+
+
+
+<section>
+    <h1><span>Melody Histogram</span></h1>
+    <img id="img1" src="./play_images/MelodyHistogram.png" alt="This is me" />
+    <p><b>JS</b> <br /> <br />
+        See a histogram of your pitch or monophonic sounds<br /> <br />
+        + Shows you how volatile your voice is <br />
+        + Gives good sense of melody you're playing <br />
+        + Challenge yourself to a singing range of one octave <br /> <br />
+
+        <em>
+            Could need a longer buffer to correct for pitch jumps, but I moved on. Turned off DEMO, because I decided it sucks</em>
+    </p>
+</section>
+
+        <div class="interlude">
+            Beneath are some Unity Experiments. I made them to learn programming.
+            <br />They are buggy and badly written, so no more demos.
+        </div>
+
+        <section>
+            <h1><span>SpaceShooter 3D</span></h1>
+            <img id="img1" src="./play_images/MusicShooter.png" alt="This is me" />
+            <p><b>Unity 3D</b><br /><br />Same concept as the earlier 2D spaceshooter. Dodge X, shoot Y -- you know the spiel. The pitch controls change with time and are always
+                part of the major scale. <br /> <br /> Image: <em> C# = left, B = shoot; D# = right</em> <br /><br />
+                I demoed this game in San Francisco at the <em>Noisebridge 10-Year Anniversary</em> after being part of a game dev bootcamp there.
+            </p>
+        </section>
+        <section>
+            <h1><span>Note Catcher</span></h1>
+            <img id="img1" src="./play_images/NoteCatcher.png" alt="This is me" />
+            <p><b>Unity 3D</b><br /><br />I borrowed another disappointing Pitch Detection module.
+                You collect the colored triangles by playing their corresponding notes. The speed and width of the "player" depend on how consistent the pitch sounds</p>
+        </section>
+
+        <section>
+            <h1>SpaceShooter</h1>
+            <img id="img1" src="./play_images/SpaceShooter_800x600.gif" alt="This is me" />
+            <p><b>Unity 3D</b><br /><br />After two weeks of coding I used the YIN Pitch Detection algorithm to make a
+                guitar controlled space shooter.
+            </p>
+        </section>
+
+        <section>
+            <h1>Interval Trainer</h1>
+            <img id="img1" src="./play_images/IntervalTraining_800x290.gif" alt="This is me" />
+            <p><b>Unity 3D</b><br /><br />Humble beginnings. The program tests your ear. It plays an interval and you have to guess it.</p>
+        </section>
+
+<script>
+    (function (w,i,d,g,e,t,s) {w[d] = w[d]||[];t= i.createElement(g);
+        t.async=1;t.src=e;s=i.getElementsByTagName(g)[0];s.parentNode.insertBefore(t, s);
+    })(window, document, '_gscq','script','//widgets.getsitecontrol.com/87117/script.js');
+</script>
+</body>
+
+</html>

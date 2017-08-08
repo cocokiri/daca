@@ -1,0 +1,17 @@
+/* Box-sizing border-box */
+* { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+
+* { /*no BS*/
+  margin:0;
+  padding:0;
+  border:0;
+  overflow: hidden;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'american_purposeregular', serif;
+}
+
+html, body {
+  font-family: 'american_purposeregular', sans-serif;
+}

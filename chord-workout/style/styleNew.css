@@ -1,0 +1,289 @@
+
+/* Box-sizing border-box */
+* { box-sizing: border-box; }
+
+* { /*no BS*/
+  margin:0;
+  padding:0;
+  border:0;
+}
+@font-face {
+      font-family: 'american_purposeregular';
+      src: url('american_purpose-webfont.eot');
+      src: url('american_purpose-webfont.eot?#iefix') format('embedded-opentype'),
+           url('american_purpose-webfont.woff2') format('woff2'),
+           url('american_purpose-webfont.woff') format('woff'),
+           url('american_purpose-webfont.ttf') format('truetype'),
+           url('american_purpose-webfont.svg#american_purposeregular') format('svg');
+      font-weight: normal;
+      font-style: normal;
+}
+h1, h2, h3, h4, h5 {
+  font-family: 'american_purposeregular', serif;
+}
+
+html, body {
+  overflow: hidden;
+  display:-webkit-box;
+  /*display:-ms-flexbox;*/
+  display:flex;
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1;
+          flex: 1 1;
+  height:100%;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  font-family: 'american_purposeregular', sans-serif;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  -webkit-font-smoothing: antialiased;
+    z-index: -1;
+
+
+}
+body {
+  background-image: linear-gradient(-160deg, rgba(35, 52, 174, 0.59) -10%, rgba(165, 110, 207, 0.61) 110%);
+  z-index: -10;
+}
+
+.tips {
+  display:-webkit-box;
+  display:flex;
+  flex-direction: column;
+  flex:1;
+  height:80%;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 1.5vh;
+  color: rgba(50,50,50,0.9);
+
+}
+
+.testDisplay {
+  color: white;
+  flex:1;
+  background: goldenrod;
+  box-shadow: 3px 2px  2px rgba(200,0,0,0.15);
+  padding: 0.5em;
+  margin-left: 9vw;
+}
+.chordDisplay {
+  display:flex;
+  flex:1;
+  height:70%;
+  margin: 4vw;
+  padding: 0px;
+  font-size: 28px;
+  font-family: sans-serif;
+  font-weight: bold;
+  border: 1px solid rgba(250, 251, 246, 0.14);
+}
+.chordRoot {
+  display:flex;
+  width: 0vw; /*if 15% --> more containers ...takes 15% of 1/4 if 4 containers...vw takes 1 elem.which is screen size*/
+  flex:1;
+  font-size:34px;
+  font-weight: 450;
+  color:white;
+  /*background: rgba(8, 7, 24, 0.87);*/
+  align-items: center;
+  justify-content: center;
+  padding:0px;
+
+}
+.chordExtend {
+  display:flex;
+  width: 0vw; /*if 15% --> more containers ...takes 15% of 1/4 if 4 containers...vw takes 1 elem.which is screen size*/
+  flex:1.4;
+  color:white;
+  /*background: rgba(8, 7, 24, 0.87);*/
+  align-items: center;
+  justify-content: left;
+  font-family: sans-serif;
+  font-weight: 500;
+  padding-left: 1vw;
+}
+
+.tipleft {
+    display:flex;
+    width: 10vw; /*if 15% --> more containers ...takes 15% of 1/4 if 4 containers...vw takes 1 elem.which is screen size*/
+    /*background: rgba(243, 37, 37, 0.74);*/
+    flex:1;
+    color:white;
+    background: rgba(8, 7, 24, 0.87);
+    align-items: center;
+    justify-content: center;
+    box-shadow: 3px 2px 0 rgba(0,0,0,0.15)
+
+}
+.tipright {
+  /*position:relative;*/
+  display:flex;
+  background: rgba(243, 37, 37, 0.74);
+  flex:0.8;
+  width: 8vw;
+  color:white;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 3px 2px 0 rgba(0,0,0,0.15)
+
+}
+
+footer {
+  display:flex;
+  flex:0;
+  width:100%;
+  min-height: 10%;
+  align-items: center;
+  justify-content: space-around;
+  background: rgba(0, 0, 0, 0.65);
+  box-shadow: 3px 2px 0 rgba(0,0,0,0.15)
+  /*background: rgba(255, 255, 255, 0.25);*/
+
+}
+#smallinstruct {
+  font-size: 0.8em;
+  color: lightgray;
+  font-weight: lighter;
+  align-items: center;
+}
+
+.pianoKeys {
+  /*background-image: linear-gradient(-170deg, rgba(35, 52, 174, 0.79) 10%, rgba(165, 110, 207, 0.71) 110%);*/
+
+  display:-webkit-box;
+  /*display:-ms-flexbox;*/
+  display:flex;
+  -webkit-box-flex:1;
+      -ms-flex:1 1;
+          flex:1 1;
+  -webkit-box-align: end;
+      -ms-flex-align: end;
+          align-items: flex-end;
+    width: 80vw;
+}
+
+.flicker {
+    animation: flickering 2.5s;
+}
+
+@keyframes flickering {
+    0% {
+        background-color: green;
+    }
+    50% {
+        background-color: lightgreen;
+    }
+}
+.feedbackDisplay {
+    display: flex;
+}
+.feedback {
+    /*flex:1;*/
+    min-height: 6vw;
+    border-radius: 100px;
+    min-width: 6vw;
+    opacity: 0.7;
+    background-color: white;
+}
+@media (max-width:600px) and (orientation:portrait) {
+  body {
+    transform: rotate(90deg);
+    position:absolute;
+    left:5vh;
+    flex-direction: row;
+    align-items: flex-end;
+  }
+  .pianoKeys {
+    order:0;
+
+  }
+  footer{
+    visibility: hidden;
+  }
+}
+
+.pianoKey {
+  display:-webkit-box;
+  /*display:-ms-flexbox;*/
+  display:flex;
+  /*min-width: 100px;*/
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1;
+          flex: 1 1;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  margin: 0.2vw;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  /*justify-content: space-around;*/
+}
+.noteText {
+  display:-webkit-box;
+  /*display:-ms-flexbox;*/
+  display:flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-flex:1;
+      -ms-flex:1;
+          flex:1;
+  color:white;
+  font-size: 32px;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+
+  text-shadow:3px 2px 0 rgba(0,0,0,0.15);
+  margin-bottom: 70%;
+}
+#root {
+  text-shadow:3px 2px 0 rgba(0,0,0,0.35);
+}
+
+.face {
+  -webkit-transform: scale(1);
+          transform: scale(1);
+  -webkit-box-ordinal-group: 0;
+      -ms-flex-order: -1;
+          order: -1; /*face on top*/
+  display: -webkit-box;
+  /*display: -ms-flexbox;*/
+  display: flex;
+  margin-top: 30%;
+}
+.face > * {
+  /*margin-top: 2vh;*/
+  -ms-flex-item-align: start;
+      align-self: flex-start;
+  background-color: white;
+  height: 1.5vh;
+  width: 1.5vh; /*set height bc there is no text in it...no default size*/
+}
+
+.eyeleft {
+  border-radius:3px;
+  margin-left: 2px;
+}
+
+.mouth {
+  height: 1.4vh;
+  width: 2vh;
+  border-bottom-left-radius: 100px;
+  border-bottom-right-radius: 100px;
+  margin-top: 80%;
+  -webkit-transform: scale(2);
+          transform: scale(2);
+}
+.eyeright {
+  margin-right: 2px;
+  border-radius:3px;
+
+}

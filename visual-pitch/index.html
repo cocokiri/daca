@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<head>
+    <title>SeeTheMusic</title>
+
+</head>
+
+<body onresize="resizeCanvas()">
+    <style>
+        body {
+            background-color: white;
+        }
+    </style>
+
+    <!-- style = "overflow:hidden" -->
+    <!-- <audio width="320" height="240" controls></audio> -->
+    <input type="range" name="slide" id="slider" value="80" onchange="untilBin = 3 * value"> Frequency Range </input>
+    <input type="range" id="tresh" value="20" onchange="threshold = 2.4 * value"> threshold </input>
+
+    <canvas> </canvas>
+    <script>
+
+        //OLD CODE -- DON'T READ...
+        var canvas = document.querySelector("canvas");
+        var canvasCtx = canvas.getContext("2d");
+
+        const chromaticC = ["C ", "C#", "D ", "D#", "E ", "F ", "F#", "G ", "G#", "A ", "A#", "B ", "C"];
+        const chordStructures = [
+            ["Major – M7", 4, 3],
+            ["Minor – m7", 3, 4],
+            ["Dominant – 7", 4, 3, 3]
+        ];
+
+        if (canvas.getContext) {
+            console.log("got canvas context");
+        }
+        let pitches = [];
+        let midiHistory = []; //all midis recognized
+        let playedMidis = []; //probably intended notes
+
+        resizeCanvas();
+
+        // Put variables in global scope to make them available to the browser console.
+        var audio = document.querySelector("audio");
+        var threshold = 0.1;
+        //console.log(audio)
+        var constraints = window.constraints = {
+            video: false,
+            audio: true
+        }
+        var untilBin = document.getElementById("slider").value;
+        untilBin.addEventListener
+
+        //var errorElement = document.querySelector('#errorMsg');
+        navigator.getUserMedia = ( navigator.getUserMedia ||
+                       navigator.webkitGetUserMedia ||
+                       navigator.mozGetUserMedia ||
+                       navigator.msGetUserMedia);
+
+        navigator.getUserMedia(constraints, callBack, console.log);
+
+        function callBack(stream) {
+            console.log('Got stream with constraints:', constraints);
+
+            stream.onended = function() {
+                console.log('Stream ended');
+            }
+            window.stream = stream; // make variable available to browser console
+            //audio.srcObject = stream;
+
+
+            var audioCtx = new window.AudioContext();
+            window.audioCtx = audioCtx;
+            //that's the Source
+            var analy = audioCtx.createAnalyser();
+            analy.fftSize = 16384;
+            window.analy = analy;
+            //automatically creates and CONNECTS AnalyserNode to AudioSource
+            //Analysernodes handle FFT
+            //analy.fftSize = 2048; - be default it's 2048 - a multiple of 2
+            analy.minDecibels = -80;
+            var source = audioCtx.createMediaStreamSource(stream);
+            source.connect(analy);
+            //analy.connect(audioCtx.destination);
+            var data = new Uint8Array(analy.frequencyBinCount);
+
+            var binSize = audioCtx.sampleRate / analy.fftSize;
+            window.binSize = binSize;
+
+            function play() {
+                window.data = data;
+                analy.getByteFrequencyData(data);
+
+                var segment = data.slice(0, untilBin); //just the good part
+                //attention --> indexes might get mixed up if beginning isn't 0
+
+                var winnerBin = highestIndex(segment);
+                canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+                //clear everything on screen every frame
+                var winnerBinNorm = correctToLowestPeak(winnerBin, segment);
+                var coords = drawSpectrum(segment, segment[winnerBin], winnerBinNorm, untilBin);
+                //coordinates of the winnerBin
+
+                var fundamental = Math.round(winnerBin * binSize);
+                var midi = HzToMIDI(fundamental);
+                //console.log(midi);
+                //midiHistory.push(midi);
+                //IntendedNote(midiHistory);
+
+                let pitch = MIDImoduloTwelve(midi); // from 0 - 12. 0 being C
+                pitch = Math.round(pitch);
+
+                let binarray = currentTopBins(segment, segment[winnerBin]);
+                var reduxbins = reduceTopBins(binarray);
+                var intervals = findIntervalsBetweenNotes(reduxbins);
+
+                drawSpectrum(segment, segment[winnerBin], winnerBinNorm, untilBin);
+
+                //draws the rect + text on the spectrum
+                drawTextwBackground(canvasCtx, chromaticC[pitch], coords[0], coords[1], pitch);
+
+                let pitches = [];
+                let smoothPitches = [] //holds the values if it think it's an actual chord
+                let counter;
+                pitches = FlexBinsToPitch(reduxbins);
+                requestAnimationFrame(play);
+            }
+            play();
+        };
+
+
+        //-------------FUNCTIONS GO HERE ------------
+        function isBigEnough(value) {
+            return value >= highestEnergyReference / 1.7;
+        }
+
+        function currentTopBins(segment, highestEnergyReference) { //get array of biggest bins
+
+            let topBins = [];
+            for (var i = 0; i < segment.length; i++) {
+                if (segment[i] == isBigEnough) {
+                    topBins.push(i);
+                }
+            }
+            topBins.sort(function(a, b) {
+                return a - b
+            }); //sort in ascending order
+
+            for (var i = 0; i < topBins.length; i++) {
+                topBins[i] = correctToLowestPeak(topBins[i], segment);
+            }
+            return topBins;
+        }
+
+        function MineCordStructsForInterval(interv, chords) {
+            let chordGuess = "No Clue";
+            let counter = 0;
+            for (var i = 0; i < chords.length; i++) {
+                counter = 0;
+                for (var j = 1; j < chords[i].length; j++) {
+                    if (chords[i][j] == interv[j - 1]) { //intervall is always 1 entry smaller bc chords does have stringname [0]
+                        counter++;
+                    }
+                }
+                if (counter == chords[i].length - 1) {
+                    chordGuess = chords[i][0]; //the name like "Major 7th"
+                }
+            }
+            return chordGuess;
+        }
+
+        function reduceTopBins(bins) {
+            let reducedBins = []; //will be 2D array
+            let binCluster = []; //temporary for pushing neighbors/clusters
+            for (var i = 0; i < bins.length; i++) {
+                if (bins[i + 1] - bins[i] <= 2) { //if they are actual neighbor bins like 57,58,59
+                    binCluster.push(bins[i]);
+                } else if (i == bins.length - 1 && //if it's the last bin that might be a solo cluster
+                    bins[i] - bins[i - 1] > 2) {
+                    let lastEntry = [i];
+                    reducedBins.push(lastEntry); //empty array for next cluster
+                }
+            }
+            if (binCluster.length != 0) { // if it's not empty add it
+                reducedBins.push(binCluster);
+                binCluster = []
+            }
+
+            //now we have reducedBins like = [54,56,57], [76,77,78] , [83,84] etc...
+            // for (var i = 0; i < reducedBins.length; i++) {
+            // reducedBins[i].reduce()
+
+
+            //1) AVERAGING APPROACH (might be better to just pick the biggest)
+            for (var i = 0; i < reducedBins.length; i++) {
+                //The Array in the Array!
+                reducedBins[i] = BiggestKeyInArraySegment(reducedBins[i]);
+            }
+            // let clusterSize = reducedBins[i].length;
+            // let clusterSum = reducedBins[i].reduce(
+            //     function(accumulator, currentVal) { //.reduce remembers the last callBack value (accumulator)
+            //         return accumulator + currentVal;
+            //     }, 0); //0 is initialvalue
+            // if (clusterSize !== 0) {
+            //     reducedBins[i] = Math.round(clusterSum / clusterSize); //
+            //     // TODO average the bin values ---> Interpolation would be better
+            // }
+
+            return reducedBins;
+        }
+
+        //draws text at pos with rectangle background
+        function drawTextwBackground(context, text, posX, posY, pitch = 6, rectSize = 60, textSize = 40, beginNewPath = true) {
+            if (beginNewPath) {
+                context.beginPath();
+                //THIS CAUSED a 30min BUG --> the Labels wouldn't delete with CLEAR REACT
+                //not because it didn't actually clear, but because the Canvasctx got more and more every rendering
+            }
+            context.rect(posX - rectSize / 2, posY - rectSize / 2, rectSize, rectSize);
+
+            //Apparently doing this doesn't work outside this function....
+            context.font = "bold " + 30 + "px" + " Verdana"; //works without .toString ...funny
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+
+            context.fillStyle = NumberToHSL(pitch, "75%", "60%");
+            context.fill();
+            context.fillStyle = "white";
+            context.fillText(text, posX, posY);
+        }
+
+        function angleToVector2D(angle) { //make possible to do fractions and radians as well
+            let radian = angle / 360 * (2 * Math.PI); //or angle * 0.01745329252;
+            let vector = [
+                Math.sin(radian), //x of einheitskreis
+                -Math.cos(radian) //y of einheitsKreis
+            ];
+            return vector;
+        }
+
+        function RadianToDegree(radian) {
+            let degrees = radian * 360 / (2 * Math.PI);
+            return degrees;
+        }
+
+        function BiggestKeyInArraySegment(array, fromIndex = 0, toIndex = array.length - 1) {
+            let biggestKeyinArray = array[fromIndex]; //default
+            for (var i = fromIndex; i < toIndex + 1; i++) {
+                if (array[i] > biggestKeyinArray) {
+                    biggestKeyinArray = i;
+                }
+            }
+            return biggestKeyinArray;
+        }
+
+        function findIntervalsBetweenNotes(reduxBins) { //input = array
+            let pitches = [];
+            for (var i = 0; i < reduxBins.length; i++) {
+                var pitch = BinToPitch(reduxBins[i]);
+                pitches.push(Math.round(pitch));
+            }
+            //pitches to intervals
+            let intervals = [];
+            for (var i = 0; i < pitches.length - 1; i++) {
+                intervals.push(IntervalInHalfSteps(pitches[i], pitches[i + 1]));
+            }
+            return intervals;
+        }
+
+        function IntervalInHalfSteps(pitch1, pitch2) {
+            var interval = (12 - (pitch1 - pitch2)) % 12;
+            //modulo takes care of restarting the scale
+            return interval;
+        }
+
+        function FlexBinsToPitch(bin) { //takes arrays and numbers
+            let pitches = [];
+            if (Object.prototype.toString.call(bin) === '[object Array]') {
+                for (var i = 0; i < bin.length; i++) {
+                    let pitch = BinToPitch(bin[i]);
+                    pitches.push(Math.round(pitch));
+
+                }
+                return pitches;
+            } else {
+                return BinToPitch(bin);
+            }
+        }
+
+        function BinToPitch(bin) {
+            let fundamental = bin * audioCtx.sampleRate / analy.fftSize;
+            let midi = Math.round(HzToMIDI(fundamental));
+            let pitch = MIDImoduloTwelve(midi);
+            return pitch;
+        }
+
+        function IntendedNote(midis) {
+            let lastMidi = midis.length - 1;
+            if (lastMidi < 100) {
+                return;
+            }
+            let countStreak = 0;
+            let deltaScore;
+            for (var i = 0; i < 20; i++) {
+
+                deltaScore = 4 * midis[lastMidi] - midis[lastMidi - 5] -
+                    midis[lastMidi - 10] - midis[lastMidi - 20] -
+                    midis[lastMidi - 30];
+
+                if (deltaScore !== undefined && deltaScore > -0.3 && deltaScore < 0.3) { //[2] is the pitch value [0,1] is for coords
+                    countStreak++;
+                }
+            }
+            //console.log("DELTA" + "  : -- " + deltaScore);
+            if (countStreak > 15 &&
+                Math.round(playedMidis[playedMidis.length - 1]) !==
+                Math.round(midis[lastMidi]) &&
+                midis[lastMidi] !== -1) {
+
+                playedMidis.push(midis[lastMidi]); //push to array
+
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        function drawLine(context, a, b) { //no beginPath
+            context.moveTo(a.x, a.y);
+            context.lineTo(b.x, b.y);
+            context.closePath();
+        }
+
+        function drawSpectrum(segment, highestEnergyReference, winnerBin = 40, untilIndex = 300) {
+            var binWidth = window.innerWidth / untilIndex; //split up screen into equal parts
+            //console.log(binWidth + "binW");
+            var xPos = -10 * binWidth;
+            var yPos;
+            var winnerBinPos = [];
+
+            for (var i = 0; i <= untilIndex; i++) {
+                var relativeSize = segment[i] / highestEnergyReference;
+                var binHeight = window.innerHeight * relativeSize;
+
+                xPos += binWidth;
+                yPos = window.innerHeight - binHeight;
+                canvasCtx.fillStyle = NumberToHSL(i * binSize);
+                canvasCtx.fillRect(xPos, yPos, binWidth, binHeight);
+                if (i == winnerBin) {
+                    winnerBinPos[0] = xPos;
+                }
+            }
+            winnerBinPos[1] = window.innerHeight - (window.innerHeight * segment[winnerBin] / highestEnergyReference) / 2;
+            //calculates Y Position of the text pop ups...
+            return winnerBinPos; //used @ drawTextwBackground
+        }
+
+        function highestIndex(spectrumData) {
+            let highestIdx = 0;
+            for (var i = 0; i < spectrumData.length; i++) {
+                if (spectrumData[i] > threshold) {
+                    if (spectrumData[i] > spectrumData[highestIdx]) {
+                        highestIdx = i;
+                    }
+                }
+            }
+            return highestIdx;
+        }
+
+        function correctToLowestPeak(biggestIdx, spectrumData) {
+            var newIdx = biggestIdx; //by default
+            for (var i = 2; i < 6; i++) //could be better: only divide by 2, 3, 5 (and then again 2 to cover every 1/2-1/10 fundamental fraction)
+            {
+                var smallerIdx = Math.round(biggestIdx / i); //had problems bc I didn't use .round and JS didn't throw errorMsg
+                //function silently didn't compare float bin values...
+                var ratio = spectrumData[biggestIdx] / spectrumData[smallerIdx];
+                if (ratio > 0.4 && ratio < 8) //if energies are close together...
+                {
+                    //---check neighbors to be sure
+                    if (spectrumData[smallerIdx] > spectrumData[smallerIdx + 1]) { //compares neighors energy values
+                        newIdx = smallerIdx;
+                    } else if (spectrumData[smallerIdx + 1] > spectrumData[smallerIdx]) { //dafuq
+                        newIdx = smallerIdx + 1;
+                    } else if (spectrumData[smallerIdx - 1] > spectrumData[smallerIdx]) { //
+                        newIdx = smallerIdx - 1;
+                    }
+                }
+            }
+            return newIdx;
+        }
+
+        function resizeCanvas() {
+            let canvas = document.querySelector("canvas");
+            if (canvas.width < window.innerWidth) {
+                canvas.width = window.innerWidth;
+            }
+
+            if (canvas.height < window.innerHeight) {
+                canvas.height = window.innerHeight;
+            }
+            console.log(canvas.height + "H" + " & " + canvas.width + "W");
+        }
+
+        function HzToMIDI(Hz) {
+            if (Hz == 0) {
+                return -1;
+            }
+            let multipleOfBase = Hz / 16.35; //16.35 is C0 which is MIDI 0 for standard tuning
+
+            function getBaseLog(x, y) { //returns the logarithm of y with base x (ie. logxy):
+                return Math.log(y) / Math.log(x) //ridiculous the JS doesn't have a function for that
+            }
+
+            let midi = 12 * getBaseLog(2, multipleOfBase); //2 as base because = 1 octave
+            return midi;
+        }
+
+        function MIDImoduloTwelve(midi) { //starts arrays with C
+            return midi % 12;
+        }
+
+        function NumberToHSL(number, s = "100%", l = "60%") { //HSL is more intuitive then RGB s=100, l =60;
+            let num = number;
+            if (number > 12) {
+                num = HzToMIDI(number) % 12;
+            }
+
+            let h = 360 - num * 360 / 12 + 60; //Hue goes gradually around (COUNTERCLOCK) the wheel at pitch '6' => 180deg
+            if (h == 360) {
+                h = 0;
+            }
+
+            return "hsl" + "(" + h + "," + s + "," + l + ")";
+        }
+    </script>
+</body>
+</head>

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PITCHINTIME</title>
+    <link rel="stylesheet" href="./style/styling.css">
+
+    <script src="./SwagLib.js"></script>
+</head>
+<style>
+    canvas {
+        position: absolute;
+        left:0px;
+        top:0px;
+    }
+    #BG {
+        z-index: 0;
+    }
+    #draw {
+        z-index: 1;
+    }
+</style>
+
+<canvas id="draw"></canvas>
+<canvas id = "BG"></canvas>
+
+<script>
+    'use strict'
+    window.addEventListener("load", init);
+
+    const CANV = document.getElementById('draw');
+    const CANVBG = document.getElementById('BG');
+
+    // // console.log(CANV);
+    const CX = CANV.getContext("2d");
+    const CXBG = CANVBG.getContext("2d");
+
+
+    window.onload = resizeCanvas(CANV);
+    window.onresize = resizeCanvas(CANV);
+    window.onload = resizeCanvas(CANVBG);
+    window.onresize = resizeCanvas(CANVBG);
+
+    let timer = 0;
+    let TIMING = {
+        now: new Date().getTime(),
+        previousTime: new Date().getTime(),
+        deltaTime: 0,
+        fps: 0,
+        update: function() {
+            this.now = new Date().getTime();
+            this.deltaTime = this.now - this.oldTime;
+            this.previousTime = this.now;
+            this.fps = 1000 / this.deltaTime;
+        }
+    }
+    const snapShots = 500;
+
+    const NOTE_RANGE = 12;
+    const TIMEHORIZON = 20; //seconds
+    let unitHeight = CANV.height / NOTE_RANGE; //if 12 notes --- 1/12 of screenheight
+    let unitWidth = CANV.width / TIMEHORIZON;
+    let memory = Array.apply(null, Array(200).map(() => undefined)); //store all prev Inputs ...render every loop
+    let recorderFunction; //will be a function
+
+    function init() {
+        'use strict'
+
+        drawBG (CXBG, CANVBG);
+
+        navigator.getUserMedia({
+            audio: true
+        }, function(stream) {
+            recorderFunction = SetupAuxNodes(stream); //swaglib function callback
+        }, console.log);
+
+        loop();
+    }
+
+    function loop() {
+        'use strict'
+        if (recorderFunction) { //if we have permission...data is coming
+            let pitch = recorderFunction();
+
+            if (pitch < 0) { //unusable (inharmonic) detected
+                pitch = undefined; //for later use with Canvas
+            }
+
+            console.log(pitch);
+
+            memory.push(pitch % 12); //modify data
+
+            if (memory.length > snapShots / 2) { //limit array size
+                memory.shift();
+            }
+            render(CX, memory);
+        }
+        requestAnimationFrame(loop);
+    };
+
+    function render(ctx, mem) {
+        ctx.clearRect(0, 0, CANV.width, CANV.height);
+        ctx.beginPath();
+        ctx.lineWidth = 10;
+        ctx.lineCap = "round";
+        // ctx.lineJoin = "round"''
+
+        mem.forEach(function(yValue, index) {
+            // if (Math.abs(yValue - mem[index - 1]) >= 0.3 || mem[index] === undefined || mem[index] === NaN) {
+                ctx.moveTo(CANV.width / snapShots * index, CANV.height - yValue * unitHeight); //snapShots to be 2x memory.length --> half of screen
+            // } else {
+                ctx.lineTo(CANV.width / snapShots * index + 2, CANV.height - yValue * unitHeight);
+            // };
+
+        });
+        // ctx.strokeStyle = NumberToHSLa(yValue);
+        CX.strokeStyle = "white";
+
+        ctx.stroke();
+         //only need 1 stroke per frame
+    };
+
+    function drawBG (ctx, canv) {
+        let rectHeight = canv.height / NOTE_RANGE;
+        for (let i = 0; i < NOTE_RANGE; i++) {
+            ctx.beginPath();
+            ctx.rect(0, canv.height - ((i+1) * rectHeight), canv.width, rectHeight); //i+1 bc draws from left up to down right
+            ctx.fillStyle = NumberToHSLa(i, undefined, "65%", 1);
+            ctx.fill();
+        }
+    }
+
+
+    //model.update();
+    //ui.draw();
+</script>

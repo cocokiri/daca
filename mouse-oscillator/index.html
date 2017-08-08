@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="./SwagLib-27-02-2017.js"></script>
+    <body onresize="resizeCanvas()">
+    </body>
+    </body>
+</head>
+<canvas id="canvas" width="window.innerWidth" height="window.innerHeight"></canvas>
+</html>
+
+<script>
+
+    /* ------------------------------------------------------------------
+    LOTS to improve here, but it will have to be in another project :)
+    Lots of global variables...just experimenting...didn't focus too much on modularity or scalability
+
+    > I used 2 canvases...one for fading stuff oder for permanent displayed
+    > Could have done half of it with CSS/HTML, but that didn't happen.
+    TODO DOMCONTENTLOAD for other BROWSERs...
+    > ATTENTION: SWAGLIB dependency has loads of global variables(Fn)...check for naming conflicts
+    ---------------
+    */
+
+    let canvas = document.getElementById("canvas");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx = canvas.getContext("2d"); //the canvas that does fading
+    painting = false;
+    lastX = 0;
+    lastY = 0;
+
+    window.onload = function() {
+        canvas = document.querySelector("canvas");
+
+        ctxTwo = canvas.getContext("2d");//the context that != fading elements
+        //only used in SetTargets function
+
+        let test1 = [0, 4, 7, 12]; //determines what notes are displayed
+        SetTargets(test1); //this is drawing and looping
+
+        //Set Up OSCillators
+        osc.type = 'sine';
+        osc.frequency.value = midiToFreq(startNote); // value in hertz
+        osc.start();
+    }
+    //--- this shit didn't work...TODO
+    // let promise1 = new Promise(function(resolve, reject) {
+    //     let currentNote;
+    //     let audioCtx = new AudioContext();
+    //     console.log(audioCtx + " audiocontext created");
+    //     resolve("REsolved");
+    // }).then (function(value) {
+    //     console.log("ADSAASD");
+    //
+    // });
+    // ----
+
+
+    //horrible global variables here
+    let currentNote;
+    let audioCtx = new AudioContext();
+    let gainNode = audioCtx.createGain();
+    let osc = audioCtx.createOscillator();
+    osc.connect(gainNode);
+    //gainNode.connect(audioCtx.destination)
+    let startNote = 60;
+    //osc.disconnect(audioCtx.destination);
+
+    let currentX;
+    let currentY;
+
+    fadeOut(); //everything on ctx will be faded out at regular intervals
+
+
+    // --------  USER INTERACTION - CANVAS EVENTS
+    canvas.onmousedown = function(e) {
+        painting = !painting;
+
+        osc.connect(audioCtx.destination);
+        lastX = e.pageX - this.offsetLeft;
+        lastY = e.pageY - this.offsetTop;
+        //doubled code...
+        currentNote = startNote + (12 * PixelCoordsToPercentage(lastX, lastY, 80, canvas)[0]);
+        osc.frequency.value = midiToFreq(currentNote);
+        //---end
+    };
+    canvas.onmouseup = function(e) {
+        painting = false;
+        //osc.stop();
+        osc.disconnect(audioCtx.destination);
+    }
+
+    canvas.onmousemove = function(e) {
+        if (painting) {
+            mouseX = e.pageX - this.offsetLeft; //offsets to draw line on mousePointer not 'throat' of mouse
+            mouseY = e.pageY - this.offsetTop; //this refers to CANVAS (left of the = function)
+            //console.log (e.pageY + "event PageY  ;" + this.offsetLeft + "  offsetTOp of: " + this )
+            currentNote = startNote + (12 * PixelCoordsToPercentage(mouseX, mouseY, 80, canvas)[0]);
+            gainNode.gain.value = 0.3;
+            osc.frequency.value = midiToFreq(currentNote);
+            osc.type = decideOscType(lastY);
+            let color = NumberToHSL(currentNote % 12);
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(mouseX, mouseY);
+            ctx.lineWidth = 30;
+            ctx.strokeStyle = color;
+            ctx.stroke();
+
+            lastX = mouseX;
+            lastY = mouseY;
+            currentX = mouseX;
+            currentY = mouseY;
+        }
+    }
+
+    //-------   FUNCTIONS  --------
+
+    function decideOscType(yPos, canvas = document.getElementById("canvas")) {
+        let totalY = canvas.height;
+        let relMousePos = yPos / totalY;
+
+        if (relMousePos < 0.25) {
+            return "square"
+        }
+        if (relMousePos < 0.5 && relMousePos >= 0.25) {
+            return "sine"
+        }
+        if (relMousePos < 0.75 && relMousePos >= 0.5) {
+            return "triangle"
+        }
+        if (relMousePos > 0.75) {
+            return "sawtooth"
+        } else return "sine"
+    }
+
+    function fadeOut() {
+        ctx.fillStyle = "hsla(255, 100%, 00%, 0.15)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        setTimeout(fadeOut, 40);
+    }
+
+    function SetTargets(test, xOffset = 8) {
+        let noteRange = test[test.length - 1] - test[0]; //first and last note --> total distance
+        let counter = 0;
+        for (var i = 0; i < noteRange + 1; i++) {
+            let xPos = 100 * i / noteRange;
+            let coords = PercentToPixel(xPos, 45, 60, canvas); //changes depending on range
+            if (i == test[counter]) {
+                //TODO make input as an Object --> instead 5 parameters
+                drawTextwCircleBg(ctxTwo, chromaticC[test[counter]], coords[0], coords[1], test[counter]);
+                counter++;
+            } else { //lights the empty squares
+                let trigger = false;
+                let distanceToNote = (Math.round(currentNote) % 12) / i; //sometimes division /0
+                if (distanceToNote < 1.08 && distanceToNote > 0.92) {
+                    trigger = true;
+                }
+                responsiveObject(ctxTwo, chromaticC[i], coords[0], coords[1], i, trigger)
+            }
+        }
+        requestAnimationFrame(function() {
+            SetTargets(test)
+        });
+    }
+</script>
