@@ -1,1 +1,0 @@
-# PitchVisualizer-Spectrogram

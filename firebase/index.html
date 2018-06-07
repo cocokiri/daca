@@ -9,19 +9,6 @@
 <input type="text" id="email"/>
 <input type="password" id="pw" />
 
-<script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
-<script>
-    // Initialize Firebase
-    var config = {
-        apiKey: "AIzaSyDQZVkwTzIU6v4F5bzR-tu8K1lm_n1nmxA",
-        authDomain: "dacapo-381a3.firebaseapp.com",
-        databaseURL: "https://dacapo-381a3.firebaseio.com",
-        projectId: "dacapo-381a3",
-        storageBucket: "dacapo-381a3.appspot.com",
-        messagingSenderId: "313132611387"
-    };
-    firebase.initializeApp(config);
-</script>
 </body>
 
 <script>
@@ -30,7 +17,7 @@
     const pwInput = document.getElementById("pw");
 
     const email = "st.rasser.ms@gmail.com";
-    const password = "cocohaha";
+    const password = "hallo";
 
     firebase.auth().createUserWithEmailAndPassword(email, password)
         .then(function (userData) {
